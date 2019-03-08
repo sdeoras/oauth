@@ -6,17 +6,25 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
-	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
+
+	"golang.org/x/oauth2"
 )
 
+// GoogleAuthContent is the struct in which we can marshal the data sent by google
+// after successful authorization.
+type GoogleAuthContent struct {
+	ID            string `json:"id"`
+	Email         string `json:"email"`
+	VerifiedEmail bool   `json:"verified_email"`
+	Link          string `json:"link"`
+	Picture       string `json:"picture"`
+}
+
+// googleProvider implements Provider interface
 type googleProvider struct {
 	oauthStateString  string
 	googleOauthConfig *oauth2.Config
-}
-
-func (g *googleProvider) Url() string {
-	return g.googleOauthConfig.AuthCodeURL(g.oauthStateString)
 }
 
 func NewGoogleProvider(redirectURL, clientId, clientSecret string) Provider {
@@ -33,6 +41,13 @@ func NewGoogleProvider(redirectURL, clientId, clientSecret string) Provider {
 	return g
 }
 
+// Url to make http call to in order to obtain authorization
+func (g *googleProvider) Url() string {
+	return g.googleOauthConfig.AuthCodeURL(g.oauthStateString)
+}
+
+// GetUserInfo validates the response from google autho provider service and
+// returns a byte buffer that can be json unmarshaled into a struct.
 func (g *googleProvider) GetUserInfo(r *http.Request) ([]byte, error) {
 	state, code := r.FormValue("state"), r.FormValue("code")
 	if state != g.oauthStateString {
