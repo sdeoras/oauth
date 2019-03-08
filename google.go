@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -19,6 +20,10 @@ type GoogleAuthContent struct {
 	VerifiedEmail bool   `json:"verified_email"`
 	Link          string `json:"link"`
 	Picture       string `json:"picture"`
+}
+
+func (c *GoogleAuthContent) Unmarshal(b []byte) error {
+	return json.Unmarshal(b, c)
 }
 
 // googleProvider implements Provider interface
